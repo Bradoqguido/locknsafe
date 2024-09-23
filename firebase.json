@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "site": "locknsafe",
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ]
+  }
+}
