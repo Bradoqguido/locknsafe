@@ -22,6 +22,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0f59eed6-388f-44e2-822a-f320e803feaa"
+      }
+    },
+    "owner": "jefersoneguido"
   }
 }
