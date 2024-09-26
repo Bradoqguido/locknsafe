@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "main": "expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start -c",
     "android": "expo start --android",
+    "prebuild:android": "npx expo prebuild --platform android --clean",
+    "build:android": "eas build --platform android --profile preview --local",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "prebuild:ios": "npx expo prebuild --platform ios --clean",
+    "build:ios": "eas build --platform ios --profile preview --local",
+    "web": "expo start --web",
+    "deploy:web": "npm run build:web && firebase deploy --only hosting:sa-transportes",
+    "build:web": "expo export -p web && npx workbox-cli generateSW workbox-config.js",
+    "app:update":  "npx expo install --check"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.0.0",
