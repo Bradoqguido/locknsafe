@@ -16,4 +16,4 @@ export const auth = initializeAuth(firebaseApp, { persistence });
 
 export const db = getFirestore(firebaseApp);
 export const authProviderGoogle = new GoogleAuthProvider();
-export const storage = getStorage(firebaseApp, `gs://${firebaseConfig.storageBucket}`);
+export const storage = getStorage(firebaseApp, `gs://${env.firebaseConfig.storageBucket}`);
