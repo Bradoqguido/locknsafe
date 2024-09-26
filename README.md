@@ -21,11 +21,9 @@ Welcome to **LocknSafe**, the ultimate solution for securely storing and managin
 
 At **LocknSafe**, we take your privacy seriously. Your passwords are encrypted and securely stored, and you are the only one with access. Even our team does not have access to your information.
 
-## Try LocknSafe Now and Never Forget a Password Again! (soon)
+## Try LocknSafe Now and Never Forget a Password Again!
 
-[Download Now](#)
-
-[Access by the web](#)
+[Access by the web](https://locknsafe.web.app)
 
 ---
 
