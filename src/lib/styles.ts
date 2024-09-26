@@ -7,4 +7,8 @@ export const globalStyles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    center: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    }
 });

@@ -6,7 +6,7 @@ import {Button} from "react-native-paper";
 import {useGoogleAuth} from "../hooks/useGoogleAuth";
 import UserInfo from "../components/UserInfo";
 
-export const Login = () => {
+const Login = () => {
     const { user, signOut, request, promptAsync } = useGoogleAuth();
 
     return (
@@ -19,3 +19,4 @@ export const Login = () => {
         </View>
     );
 }
+export default Login
