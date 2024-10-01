@@ -2,7 +2,6 @@ import { Firestore } from "firebase/firestore";
 import { Auth } from "firebase/auth";
 import {KeyChain} from "./models/keyChain";
 import { FirebaseApp } from "firebase/app";
-import {authProviderGoogle} from "../../../firebaseConfig";
 import { FirebaseStorage } from "firebase/storage";
 import firebase from "firebase/compat";
 import User = firebase.User;
@@ -19,6 +18,10 @@ export class Api {
         this.auth = auth
         this.storage = storage
         this.keyChain = new KeyChain(db, 'keychain')
+    }
+
+    onAuthStateChangedHandler = (user: any): void => {
+        this.user = user as User | null
     }
 
     setUser(user: User): void {

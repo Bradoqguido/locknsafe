@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {StatusBar} from 'expo-status-bar';
 
 import {PaperProvider} from "react-native-paper";
@@ -17,6 +17,7 @@ import Login from "./src/pages/Login";
 import KeyChain from "./src/pages/KeyChain";
 import Settings from './src/pages/Settings';
 import About from "./src/pages/About";
+import {onAuthStateChanged} from "firebase/auth";
 
 export default function App() {
   const api: Api = new Api(firebaseApp, auth, db, storage)
@@ -24,19 +25,19 @@ export default function App() {
   const theme= colorScheme === 'dark' ? Theme.darkTheme : Theme.lightTheme
   const Stack = createNativeStackNavigator()
 
-  const getInitialRoute = (): string => {
-      return 'About'
-  }
+  useEffect(() => {
+    return onAuthStateChanged(auth, api.onAuthStateChangedHandler);
+  }, []);
 
   return (
     <NavigationContainer>
       <PaperProvider theme={theme}>
         <StatusBar style="auto" />
         <FirebaseContext.Provider value={{ api }}>
-          <Stack.Navigator initialRouteName={getInitialRoute()} screenOptions={{ headerTintColor: theme.colors.primary }}>
+          <Stack.Navigator initialRouteName={'About'} screenOptions={{ headerTintColor: theme.colors.primary }}>
             <Stack.Screen name="About" component={About} options={{ title: 'LocknSafe' }} />
             <Stack.Screen name="Login" component={Login} options={{ title: 'Acesso' }} />
-            <Stack.Screen name="KeyChain" component={KeyChain} options={{ title: 'Chaveiro', headerBackButtonMenuEnabled: false }} />
+            <Stack.Screen name="KeyChain" component={KeyChain} options={{ title: 'Chaveiro' }} />
             <Stack.Screen name="Settings" component={Settings} options={{ title: 'Configurações' }} />
           </Stack.Navigator>
         </FirebaseContext.Provider>

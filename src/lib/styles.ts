@@ -10,5 +10,5 @@ export const globalStyles = StyleSheet.create({
     center: {
         alignItems: 'center',
         justifyContent: 'center',
-    }
+    },
 });
