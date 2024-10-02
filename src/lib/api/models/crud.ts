@@ -23,10 +23,10 @@ export default class Crud<T> implements ICrud<T>{
         }
     }
 
-    async selectAll(): Promise<T[]> {
+    async selectAll(uid: string): Promise<T[]> {
         try {
             const records: T[] = []
-            const q = query(this.collectionRef)
+            const q = query(this.collectionRef, where('uid', '==', uid))
             const querySnapshot = await getDocs(q)
             querySnapshot.forEach(doc => {
                 records.push({
