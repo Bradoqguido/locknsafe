@@ -1,19 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, Alert } from 'react-native';
-import {Modal, Portal, Text, TextInput, Button, Checkbox, Title, Card} from 'react-native-paper';
+import {Modal, Portal, TextInput, Button, Checkbox, Title, Card, Appbar, Searchbar, Menu, IconButton} from 'react-native-paper';
 import uuid from 'react-native-uuid';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {globalStyles} from "../lib/styles";
 import { useFirebase } from '../hooks/useFirebase';
 import { Key } from '../lib/@types/KeyChain';
+import {useNavigation} from "@react-navigation/native";
+import CardTitle from "react-native-paper/lib/typescript/components/Card/CardTitle";
 
 const KeyChain = () => {
     const api = useFirebase();
+    const navigator = useNavigation();
+
     const [keys, setKeys] = useState<Key[]>([]);
+    const [filteredKeys, setFilteredKeys] = useState<Key[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearchbar, setShowSearchbar] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
+
+    const [modalVisible, setModalVisible] = useState(false);
     const [newKeyDescription, setNewKeyDescription] = useState('');
     const [newKeyHash, setNewKeyHash] = useState('');
     const [visibleHash, setVisibleHash] = useState<{ [keyId: string]: boolean }>({});
-    const [modalVisible, setModalVisible] = useState(false);
     const [useUppercase, setUseUppercase] = useState(false);
     const [useLowercase, setUseLowercase] = useState(true); // padrão
     const [useNumbers, setUseNumbers] = useState(false);
@@ -21,11 +30,15 @@ const KeyChain = () => {
     const [minLength, setMinLength] = useState(8);
     const [maxLength, setMaxLength] = useState(16);
 
+    const openMenu = () => setMenuVisible(true);
+    const closeMenu = () => setMenuVisible(false);
+
     // Função para carregar as chaves
     const loadKeys = async () => {
         try {
             const allKeys = await api.keyChain.selectAll(api.auth.currentUser?.uid || '');
             setKeys(allKeys);
+            setFilteredKeys(allKeys);
         } catch (error) {
             Alert.alert('Erro', 'Não foi possível carregar as chaves');
         }
@@ -118,10 +131,37 @@ const KeyChain = () => {
         const hashLength = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
         let result = '';
         for (let i = 0; i < hashLength; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length));
+            result += characters.charAt(Math.floor(Math.pow(Math.random() * characters.length, Math.PI)));
         }
 
         setNewKeyHash(result);
+    };
+
+    // Função de filtro pelo campo de descrição
+    const filterKeys = (query: string) => {
+        // Se a query não tiver nada, retorna a lista vazia
+        if(query.length === 0) {
+            setFilteredKeys(keys)
+            setSearchQuery(query);
+            return;
+        }
+        const filtered = keys.filter(key =>
+            key.description.toLowerCase().includes(query.toLowerCase())
+        );
+        setFilteredKeys(filtered);
+        setSearchQuery(query);
+    };
+
+    const handleLogout = () => {
+        closeMenu();
+        api.auth.signOut().then(() => {
+            navigator.navigate(`Login`);
+        });
+    };
+
+    const handleChangePassphrase = () => {
+        closeMenu();
+        // TODO: Criar funcionalidade para trocar a frase de segurança e usar isso durante a codigficação do hash
     };
 
     useEffect(() => {
@@ -130,40 +170,66 @@ const KeyChain = () => {
 
     return (
         <View style={globalStyles.container}>
-            <Title>Lista de Chaves</Title>
+            {/* AppBar com botão de busca e menu flutuante */}
+            <Appbar.Header>
+                <Appbar.Content title="Lista de Chaves" />
+                <Appbar.Action icon="plus" onPress={() => setModalVisible(true)} />
+                <Appbar.Action icon="magnify" onPress={() => setShowSearchbar(!showSearchbar)} />
+                <Appbar.Action icon="refresh" onPress={() => loadKeys()} />
+                <Menu
+                    visible={menuVisible}
+                    onDismiss={closeMenu}
+                    anchor={<Appbar.Action icon="dots-vertical" onPress={openMenu} />}>
+                    <Menu.Item onPress={handleChangePassphrase} title="Trocar Frase de Segurança" />
+                    <Menu.Item onPress={handleLogout} title="Sair" />
+                </Menu>
+            </Appbar.Header>
+
+            {/* Barra de busca visível ao clicar no ícone de lupa */}
+            {showSearchbar && (
+                <Searchbar
+                    placeholder="Buscar por descrição"
+                    onChangeText={filterKeys}
+                    value={searchQuery}
+                    style={{ margin: 10 }}
+                />
+            )}
+
+            {/* Lista de Chaves */}
             <FlatList
-                data={keys}
+                data={filteredKeys}
+                style={{ margin: 10 }}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                     <Card style={{ marginBottom: 10 }}>
-                        <Card.Content>
-                            <Title>Descrição: {item.description}</Title>
-                            <Button
-                                mode="outlined"
-                                onPress={() => toggleHashVisibility(item.id)}
-                            >
-                                {visibleHash[item.id] ? 'Ocultar Hash' : 'Mostrar Hash'}
-                            </Button>
-                            {visibleHash[item.id] && (
-                                <View>
-                                    <Text>Hash: {item.hash}</Text>
-                                    <Button mode="contained" onPress={() => copyToClipboard(item.hash)}>
-                                        Copiar
-                                    </Button>
+                        <Card.Title title={`${item.description}`}
+                                    titleStyle={{ fontSize: 24 }}/>
+                        <Card.Content style={{ flexDirection: 'column' }}>
+                            <View style={{ flexDirection: 'row' }}>
+                                <View style={{ flexDirection: 'column', flex: 3 }}>
+                                    <Title>Senha: {visibleHash[item.id] ? item.hash : ''}</Title>
                                 </View>
-                            )}
+                                <View style={{ flexDirection: 'column', flex: 1 }}>
+                                    <View style={{ flexDirection: 'row-reverse' }}>
+                                        <IconButton
+                                            mode="outlined"
+                                            icon={'content-copy'}
+                                            onPress={() => copyToClipboard(item.hash)} />
+                                        <IconButton
+                                            mode="outlined"
+                                            icon={visibleHash[item.id] ? 'eye-off' : 'eye'}
+                                            onPress={() => toggleHashVisibility(item.id)} />
+                                    </View>
+                                </View>
+                            </View>
                         </Card.Content>
                         <Card.Actions>
-                            <Button onPress={() => console.log('Editar')}>Editar</Button>
-                            <Button onPress={() => console.log('Excluir')}>Excluir</Button>
+                            <Button onPress={() => editKey(item.id)}>Editar</Button>
+                            <Button onPress={() => deleteKey(item.id)}>Excluir</Button>
                         </Card.Actions>
                     </Card>
                 )}
             />
-
-            <Button mode="contained" onPress={() => setModalVisible(true)}>
-                Adicionar Nova Chave
-            </Button>
 
             {/* Modal para criar nova chave */}
             <Portal>
@@ -226,12 +292,9 @@ const KeyChain = () => {
                             />
                         </View>
 
-                        <Button onPress={generateHash} mode="contained" style={{ marginBottom: 10 }}>
-                            Gerar Hash
-                        </Button>
-                        <Button onPress={addKey} mode="contained">
-                            Criar Chave
-                        </Button>
+                        <Button onPress={generateHash} mode="contained" style={{ marginBottom: 10 }}>Gerar Hash</Button>
+                        <Button onPress={addKey} mode="contained">Criar Chave</Button>
+                        <Button onPress={() => setModalVisible(false)} mode="outlined">Cancelar</Button>
                     </View>
                 </Modal>
             </Portal>

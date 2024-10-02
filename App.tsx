@@ -35,10 +35,10 @@ export default function App() {
         <StatusBar style="auto" />
         <FirebaseContext.Provider value={{ api }}>
           <Stack.Navigator initialRouteName={'About'} screenOptions={{ headerTintColor: theme.colors.primary }}>
-            <Stack.Screen name="About" component={About} options={{ title: 'LocknSafe' }} />
-            <Stack.Screen name="Login" component={Login} options={{ title: 'Acesso' }} />
-            <Stack.Screen name="KeyChain" component={KeyChain} options={{ title: 'Chaveiro' }} />
-            <Stack.Screen name="Settings" component={Settings} options={{ title: 'Configurações' }} />
+            <Stack.Screen name="About" component={About} options={{ title: 'LocknSafe', headerShown: false }} />
+            <Stack.Screen name="Login" component={Login} options={{ title: 'Acesso', headerShown: false }} />
+            <Stack.Screen name="KeyChain" component={KeyChain} options={{ title: 'Chaveiro', headerShown: false }} />
+            <Stack.Screen name="Settings" component={Settings} options={{ title: 'Configurações', headerShown: false }} />
           </Stack.Navigator>
         </FirebaseContext.Provider>
       </PaperProvider>
