@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {KeyboardAvoidingView, Text, View, StyleSheet} from "react-native";
-import {Button, useTheme} from "react-native-paper";
+import {Avatar, Button, useTheme} from "react-native-paper";
 import UserInfo from "../components/UserInfo";
 import {signInWithPopup} from "firebase/auth";
 import {authProviderGoogle} from "../../firebaseConfig";
@@ -17,24 +17,34 @@ const Login = () => {
 
     return (
         <KeyboardAvoidingView behavior="padding" style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <View style={styles.headerContainer}>
-                <Text style={[styles.headerText, { color: theme.colors.primary }]}>LocknSafe</Text>
-                <Text style={styles.subHeaderText}>Secure your passwords with ease</Text>
-            </View>
+            <View style={globalStyles.center}>
+                <Avatar.Image
+                    size={160}
+                    style={{marginBottom: 30}}
+                    source={require('../../assets/icon.png')}
+                />
 
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Button
-                    style={styles.button}
-                    mode={"contained"}
-                    onPress={() => {
-                    signInWithPopup(api.auth, authProviderGoogle)
-                        .then((userCredential) => {
-                            navigator.navigate('KeyChain')
-                        })
-                        .catch((error) => {
-                            console.error('erro ao fazer login.', {error})
-                        })
-                }}>Login com Google</Button>
+                <View style={globalStyles.headerContainer}>
+                    <Text style={[globalStyles.headerText, { color: theme.colors.primary }]}>LocknSafe</Text>
+                    <Text style={globalStyles.subHeaderText}>A maneira mais segura de gerenciar suas senhas</Text>
+                </View>
+
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Button
+                        style={styles.button}
+                        mode={"contained"}
+                        onPress={() => {
+                            signInWithPopup(api.auth, authProviderGoogle)
+                                .then((userCredential) => {
+                                    navigator.navigate('KeyChain')
+                                })
+                                .catch((error) => {
+                                    console.error('erro ao fazer login.', {error})
+                                })
+                        }}>Login com Google</Button>
+
+                    <Button onPress={() => navigator.goBack()}>Sobre nós</Button>
+                </View>
             </View>
         </KeyboardAvoidingView>
     );
@@ -46,18 +56,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         justifyContent: 'center',
-    },
-    headerContainer: {
-        marginBottom: 32,
-        alignItems: 'center',
-    },
-    headerText: {
-        fontSize: 32,
-        fontWeight: 'bold',
-    },
-    subHeaderText: {
-        fontSize: 18,
-        color: '#333',
     },
     formContainer: {
         width: '100%',

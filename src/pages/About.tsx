@@ -1,22 +1,40 @@
 import {ScrollView, Linking, View} from 'react-native';
-import {Text, Button, Divider, Title, Paragraph, List, Avatar, useTheme} from 'react-native-paper';
+import {Text, Button, Divider, Title, Paragraph, List, Avatar, useTheme, Appbar} from 'react-native-paper';
 import {globalStyles} from "../lib/styles";
 import {useNavigation} from "@react-navigation/native";
+import React from "react";
 
 const About = () => {
     const theme = useTheme()
     const navigation = useNavigation()
 
+    const buttonAccessNow = () => (
+        <View style={[globalStyles.center, { marginVertical: 16}]}>
+            <Button mode="contained" onPress={() => navigation.navigate('Login')}>
+                Acessar agora
+            </Button>
+        </View>
+    )
+
     return (
         <ScrollView style={{ padding: 20, backgroundColor: theme.colors.background }}>
-            <Title style={{ textAlign: 'center', marginVertical: 10 }}>LocknSafe: A maneira mais segura de gerenciar suas senhas</Title>
+            <Appbar.Header>
+                <Appbar.Content title="LocknSafe" />
+                <Appbar.Action icon={'account'} onPress={() => navigation.navigate('Login')} />
+            </Appbar.Header>
 
             <View style={globalStyles.center}>
                 <Avatar.Image
-                    size={250}
+                    size={160}
                     style={{marginBottom: 30}}
                     source={require('../../assets/icon.png')}
                 />
+            </View>
+
+            <View style={globalStyles.headerContainer}>
+                <Text style={[globalStyles.headerText, { color: theme.colors.primary }]}>LocknSafe</Text>
+                <Text style={globalStyles.subHeaderText}>A maneira mais segura de gerenciar suas senhas</Text>
+                {buttonAccessNow()}
             </View>
 
             <Paragraph style={{ textAlign: 'center', marginVertical: 10 }}>
@@ -75,13 +93,6 @@ const About = () => {
                     Nem mesmo nossa equipe tem acesso às suas informações.
                 </Paragraph>
             </View>
-
-            <View style={[globalStyles.center, { marginVertical: 10}]}>
-                <Button mode="contained" style={{ marginTop: 20 }} onPress={() => navigation.navigate('Login')}>
-                    Acessar agora
-                </Button>
-            </View>
-
         </ScrollView>
     );
 }

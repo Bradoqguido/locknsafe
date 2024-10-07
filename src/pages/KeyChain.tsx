@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, Alert } from 'react-native';
-import {Modal, Portal, TextInput, Button, Checkbox, Title, Card, Appbar, Searchbar, Menu, IconButton} from 'react-native-paper';
+import {Modal, Portal, TextInput, Button, Checkbox, Title, Card, Appbar, Searchbar, Menu, IconButton, useTheme} from 'react-native-paper';
 import uuid from 'react-native-uuid';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {globalStyles} from "../lib/styles";
@@ -10,6 +10,7 @@ import {useNavigation} from "@react-navigation/native";
 import CardTitle from "react-native-paper/lib/typescript/components/Card/CardTitle";
 
 const KeyChain = () => {
+    const theme = useTheme();
     const api = useFirebase();
     const navigator = useNavigation();
 
@@ -95,7 +96,7 @@ const KeyChain = () => {
     const deleteKey = async (id: string) => {
         try {
             await api.keyChain.delete(id);
-            loadKeys();
+            await loadKeys();
         } catch (error) {
             Alert.alert('Erro', 'Não foi possível excluir a chave');
         }
@@ -131,7 +132,7 @@ const KeyChain = () => {
         const hashLength = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
         let result = '';
         for (let i = 0; i < hashLength; i++) {
-            result += characters.charAt(Math.floor(Math.pow(Math.random() * characters.length, Math.PI)));
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
 
         setNewKeyHash(result);
@@ -169,7 +170,7 @@ const KeyChain = () => {
     }, []);
 
     return (
-        <View style={globalStyles.container}>
+        <View style={[globalStyles.container, { backgroundColor: theme.colors.background }]}>
             {/* AppBar com botão de busca e menu flutuante */}
             <Appbar.Header>
                 <Appbar.Content title="Lista de Chaves" />
@@ -234,7 +235,7 @@ const KeyChain = () => {
             {/* Modal para criar nova chave */}
             <Portal>
                 <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)}>
-                    <View style={{ padding: 20, backgroundColor: 'white', margin: 20 }}>
+                    <View style={{ padding: 20, backgroundColor: theme.colors.background, margin: 20 }}>
                         <Title>Criar Nova Chave</Title>
                         <TextInput
                             label="Descrição"
