@@ -33,7 +33,7 @@ const About = () => {
 
             <View style={globalStyles.headerContainer}>
                 <Text style={[globalStyles.headerText, { color: theme.colors.primary }]}>LocknSafe</Text>
-                <Text style={globalStyles.subHeaderText}>A maneira mais segura de gerenciar suas senhas</Text>
+                <Text style={[globalStyles.subHeaderText, { color: theme.colors.secondary }]}>A maneira mais segura de gerenciar suas senhas</Text>
                 {buttonAccessNow()}
             </View>
 
