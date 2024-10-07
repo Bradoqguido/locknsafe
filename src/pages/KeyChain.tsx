@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, Alert } from 'react-native';
-import {Modal, Portal, TextInput, Button, Checkbox, Title, Card, Appbar, Searchbar, Menu, IconButton, useTheme} from 'react-native-paper';
+import {
+    Modal,
+    Portal,
+    TextInput,
+    Button,
+    Checkbox,
+    Title,
+    Card,
+    Appbar,
+    Searchbar,
+    Menu,
+    IconButton,
+    useTheme,
+    Snackbar, Dialog, Paragraph, Text, List
+} from 'react-native-paper';
 import uuid from 'react-native-uuid';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {globalStyles} from "../lib/styles";
@@ -34,6 +48,22 @@ const KeyChain = () => {
     const openMenu = () => setMenuVisible(true);
     const closeMenu = () => setMenuVisible(false);
 
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [dialogVisible, setDialogVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [item, setItem] = useState<Key | null>(null)
+
+    const showSnackbar = (message: string) => {
+        setSnackbarMessage(message);
+        setSnackbarVisible(true);
+    };
+
+    const hideSnackbar = () => setSnackbarVisible(false);
+
+    const showDialog = () => setDialogVisible(true);
+
+    const hideDialog = () => setDialogVisible(false);
+
     // Função para carregar as chaves
     const loadKeys = async () => {
         try {
@@ -41,14 +71,14 @@ const KeyChain = () => {
             setKeys(allKeys);
             setFilteredKeys(allKeys);
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível carregar as chaves');
+            showSnackbar('Erro, Não foi possível carregar as senhas');
         }
     };
 
     // Função para adicionar uma nova chave
     const addKey = async () => {
         if (!newKeyDescription || !newKeyHash) {
-            Alert.alert('Erro', 'Preencha todos os campos');
+            showSnackbar('Erro, Preencha todos os campos');
             return;
         }
         const newKey: Key = {
@@ -60,12 +90,12 @@ const KeyChain = () => {
             updated_at: new Date(),
         };
         try {
-            await api.keyChain.insert(newKey);
+            await api.keyChain.insert(newKey).then(() => showSnackbar('Senha criada com sucesso!'));
             await loadKeys();
             setNewKeyDescription('');
             setNewKeyHash('');
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível adicionar a chave');
+            showSnackbar('Erro, Não foi possível adicionar a senha');
         } finally {
             setModalVisible(false)
         }
@@ -88,7 +118,7 @@ const KeyChain = () => {
             await api.keyChain.update(updatedKey);
             loadKeys();
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível editar a chave');
+            showSnackbar('Erro, não foi possível editar a senha');
         }
     };
 
@@ -98,14 +128,14 @@ const KeyChain = () => {
             await api.keyChain.delete(id);
             await loadKeys();
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível excluir a chave');
+            showSnackbar('Erro, não foi possível excluir a senha');
         }
     };
 
     // Função para copiar o hash
     const copyToClipboard = (hash: string) => {
         Clipboard.setString(hash);
-        Alert.alert('Copiado', 'O hash foi copiado para a área de transferência');
+        showSnackbar('Copiado, O hash foi copiado para a área de transferência');
     };
 
     // Função para alternar a visibilidade do hash
@@ -125,7 +155,7 @@ const KeyChain = () => {
         if (useSpecialChars) characters += '!@#$%^&*()_+[]{}|;:,.<>?';
 
         if (!characters) {
-            Alert.alert('Erro', 'Selecione ao menos uma opção para gerar o hash.');
+            showSnackbar('Erro, Selecione ao menos uma opção para gerar o hash.');
             return;
         }
 
@@ -156,6 +186,7 @@ const KeyChain = () => {
     const handleLogout = () => {
         closeMenu();
         api.auth.signOut().then(() => {
+            showSnackbar(`Até mais tarde, ${api.auth.currentUser && api.auth.currentUser.displayName ? api.auth.currentUser.displayName : ''} !`);
             navigator.navigate(`Login`);
         });
     };
@@ -173,7 +204,7 @@ const KeyChain = () => {
         <View style={[globalStyles.container, { backgroundColor: theme.colors.background }]}>
             {/* AppBar com botão de busca e menu flutuante */}
             <Appbar.Header>
-                <Appbar.Content title="Lista de Chaves" />
+                <Appbar.Content title="Lista de Senhas" />
                 <Appbar.Action icon="plus" onPress={() => setModalVisible(true)} />
                 <Appbar.Action icon="magnify" onPress={() => setShowSearchbar(!showSearchbar)} />
                 <Appbar.Action icon="refresh" onPress={() => loadKeys()} />
@@ -226,7 +257,10 @@ const KeyChain = () => {
                         </Card.Content>
                         <Card.Actions>
                             <Button onPress={() => editKey(item.id)}>Editar</Button>
-                            <Button onPress={() => deleteKey(item.id)}>Excluir</Button>
+                            <Button onPress={() => {
+                                setItem(item)
+                                showDialog()
+                            }}>Excluir</Button>
                         </Card.Actions>
                     </Card>
                 )}
@@ -235,69 +269,119 @@ const KeyChain = () => {
             {/* Modal para criar nova chave */}
             <Portal>
                 <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)}>
-                    <View style={{ padding: 20, backgroundColor: theme.colors.background, margin: 20 }}>
-                        <Title>Criar Nova Chave</Title>
-                        <TextInput
-                            label="Descrição"
-                            value={newKeyDescription}
-                            onChangeText={setNewKeyDescription}
-                            mode="outlined"
-                            style={{ marginBottom: 10 }}
-                        />
-                        <TextInput
-                            label="Hash Gerado"
-                            value={newKeyHash}
-                            onChangeText={setNewKeyHash}
-                            mode="outlined"
-                            disabled
-                            style={{ marginBottom: 10 }}
-                        />
+                    <View style={{ padding: 16, backgroundColor: theme.colors.background, margin: 16, borderRadius: 16 }}>
+                        <Title>{item ? 'Editar senha' : 'Criar Nova Senha'}</Title>
 
-                        <View>
-                            <Checkbox.Item
-                                label="Usar Letras Maiúsculas"
-                                status={useUppercase ? 'checked' : 'unchecked'}
-                                onPress={() => setUseUppercase(!useUppercase)}
+                        <View style={{ margin: 8 }}>
+                            <TextInput
+                                label="Descrição"
+                                value={newKeyDescription}
+                                onChangeText={setNewKeyDescription}
+                                mode="outlined"
+                                style={{ marginBottom: 8 }}
                             />
-                            <Checkbox.Item
-                                label="Usar Letras Minúsculas"
-                                status={useLowercase ? 'checked' : 'unchecked'}
-                                onPress={() => setUseLowercase(!useLowercase)}
-                            />
-                            <Checkbox.Item
-                                label="Usar Números"
-                                status={useNumbers ? 'checked' : 'unchecked'}
-                                onPress={() => setUseNumbers(!useNumbers)}
-                            />
-                            <Checkbox.Item
-                                label="Usar Caracteres Especiais"
-                                status={useSpecialChars ? 'checked' : 'unchecked'}
-                                onPress={() => setUseSpecialChars(!useSpecialChars)}
+                            <TextInput
+                                label={'Senha'}
+                                value={newKeyHash}
+                                onChangeText={setNewKeyHash}
+                                mode="outlined"
+                                style={{ marginBottom: 8 }}
                             />
                         </View>
 
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-                            <TextInput
-                                placeholder="Tamanho Mínimo"
-                                keyboardType="numeric"
-                                value={String(minLength)}
-                                onChangeText={text => setMinLength(Number(text))}
-                                style={{ borderWidth: 1, padding: 5, width: '45%' }}
-                            />
-                            <TextInput
-                                placeholder="Tamanho Máximo"
-                                keyboardType="numeric"
-                                value={String(maxLength)}
-                                onChangeText={text => setMaxLength(Number(text))}
-                                style={{ borderWidth: 1, padding: 5, width: '45%' }}
-                            />
+                        <List.AccordionGroup>
+                            <View style={{ margin: 16 }}>
+                                <List.Accordion title="Gerador de senha" id={1}>
+                                    <View style={{ margin: 8 }}>
+                                        <Checkbox.Item
+                                            label="Usar Letras Maiúsculas"
+                                            status={useUppercase ? 'checked' : 'unchecked'}
+                                            onPress={() => setUseUppercase(!useUppercase)}
+                                        />
+                                        <Checkbox.Item
+                                            label="Usar Letras Minúsculas"
+                                            status={useLowercase ? 'checked' : 'unchecked'}
+                                            onPress={() => setUseLowercase(!useLowercase)}
+                                        />
+                                        <Checkbox.Item
+                                            label="Usar Números"
+                                            status={useNumbers ? 'checked' : 'unchecked'}
+                                            onPress={() => setUseNumbers(!useNumbers)}
+                                        />
+                                        <Checkbox.Item
+                                            label="Usar Caracteres Especiais"
+                                            status={useSpecialChars ? 'checked' : 'unchecked'}
+                                            onPress={() => setUseSpecialChars(!useSpecialChars)}
+                                        />
+                                    </View>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', margin: 8 }}>
+                                        <View style={{ flexDirection: 'column', width: '45%' }}>
+                                            <Text variant={"bodyMedium"}>Tamanho Mínimo</Text>
+                                            <TextInput
+                                                placeholder="Tamanho Mínimo"
+                                                keyboardType="numeric"
+                                                value={String(minLength)}
+                                                onChangeText={text => setMinLength(Number(text))}
+                                                style={{ borderWidth: 1, padding: 5 }}
+                                            />
+                                        </View>
+                                        <View style={{ flexDirection: 'column', width: '45%' }}>
+                                            <Text variant={"bodyMedium"}>Tamanho Máximo</Text>
+                                            <TextInput
+                                                placeholder="Tamanho Máximo"
+                                                keyboardType="numeric"
+                                                value={String(maxLength)}
+                                                onChangeText={text => setMaxLength(Number(text))}
+                                                style={{ borderWidth: 1, padding: 5 }}
+                                            />
+                                        </View>
+                                    </View>
+                                    <View style={[globalStyles.center, { flexDirection: 'row' }]}>
+                                        <Button onPress={generateHash} mode="contained-tonal" style={{ margin: 8, width: '50%' }}>Gerar Senha</Button>
+                                    </View>
+                                </List.Accordion>
+                            </View>
+                        </List.AccordionGroup>
+
+
+                        <View style={[globalStyles.center, { flexDirection: 'row' }]}>
+                            <Button onPress={() => setModalVisible(false)} mode="outlined" style={{ margin: 8, width: '45%' }} >Cancelar</Button>
+                            <Button onPress={addKey} mode="contained" style={{ margin: 8, width: '45%' }}>Criar Senha</Button>
                         </View>
 
-                        <Button onPress={generateHash} mode="contained" style={{ marginBottom: 10 }}>Gerar Hash</Button>
-                        <Button onPress={addKey} mode="contained">Criar Chave</Button>
-                        <Button onPress={() => setModalVisible(false)} mode="outlined">Cancelar</Button>
                     </View>
                 </Modal>
+
+                <Dialog visible={dialogVisible} onDismiss={hideDialog}>
+                    <Dialog.Title>Confirmação</Dialog.Title>
+                    <Dialog.Content>
+                        <Paragraph>Deseja realmente excluir esta senha?</Paragraph>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => {
+                            hideDialog()
+                            setItem(null)
+                        }}>Cancelar</Button>
+                        <Button onPress={() => {
+                            hideDialog();
+                            if (item) deleteKey(item.id)
+                        }}>
+                            Confirmar
+                        </Button>
+                    </Dialog.Actions>
+                </Dialog>
+
+                <Snackbar
+                    visible={snackbarVisible}
+                    onDismiss={hideSnackbar}
+                    action={{
+                        label: 'Ok',
+                        onPress: () => {
+                            hideSnackbar();
+                        },
+                    }}>
+                    {snackbarMessage}
+                </Snackbar>
             </Portal>
         </View>
     );
