@@ -77,19 +77,20 @@ const KeyChain = () => {
 
     // Função para adicionar uma nova chave
     const addKey = async () => {
-        if (!newKeyDescription || !newKeyHash) {
-            showSnackbar('Erro, Preencha todos os campos');
-            return;
-        }
-        const newKey: Key = {
-            id: uuid.v4().toString(), // Gera ID aleatório
-            uid: api.auth.currentUser?.uid || '',
-            hash: newKeyHash,
-            description: newKeyDescription,
-            created_at: new Date(),
-            updated_at: new Date(),
-        };
         try {
+            if (!newKeyDescription || !newKeyHash) {
+                showSnackbar('Erro, Preencha todos os campos');
+                return;
+            }
+            const newKey: Key = {
+                id: uuid.v4().toString(), // Gera ID aleatório
+                uid: api.auth.currentUser?.uid || '',
+                hash: newKeyHash,
+                description: newKeyDescription,
+                created_at: new Date(),
+                updated_at: new Date(),
+            };
+
             await api.keyChain.insert(newKey).then(() => showSnackbar('Senha criada com sucesso!'));
             await loadKeys();
             setNewKeyDescription('');
@@ -102,23 +103,27 @@ const KeyChain = () => {
     };
 
     // Função para editar uma chave
-    const editKey = async (id: string) => {
-        const updatedDescription = prompt('Nova descrição:');
-        if (!updatedDescription) return;
-
+    const editKey = async (item: Key) => {
         try {
-            const keyToUpdate = keys.find(k => k.id === id);
+            if (!newKeyDescription || !newKeyHash) {
+                showSnackbar('Erro, Preencha todos os campos');
+                return;
+            }
+            const keyToUpdate = keys.find(k => k.id === item.id);
             if (!keyToUpdate) return;
 
             const updatedKey = {
                 ...keyToUpdate,
-                description: updatedDescription,
+                hash: item.hash,
+                description: item.description,
                 updated_at: new Date(),
             };
             await api.keyChain.update(updatedKey);
             loadKeys();
         } catch (error) {
             showSnackbar('Erro, não foi possível editar a senha');
+        } finally {
+            setModalVisible(false)
         }
     };
 
@@ -135,7 +140,7 @@ const KeyChain = () => {
     // Função para copiar o hash
     const copyToClipboard = (hash: string) => {
         Clipboard.setString(hash);
-        showSnackbar('Copiado, O hash foi copiado para a área de transferência');
+        showSnackbar('Copiado, A senha foi copiada para a área de transferência');
     };
 
     // Função para alternar a visibilidade do hash
@@ -212,7 +217,7 @@ const KeyChain = () => {
                     visible={menuVisible}
                     onDismiss={closeMenu}
                     anchor={<Appbar.Action icon="dots-vertical" onPress={openMenu} />}>
-                    <Menu.Item onPress={handleChangePassphrase} title="Trocar Frase de Segurança" />
+                    {/*<Menu.Item onPress={handleChangePassphrase} title="Trocar Frase de Segurança" />*/}
                     <Menu.Item onPress={handleLogout} title="Sair" />
                 </Menu>
             </Appbar.Header>
@@ -256,7 +261,12 @@ const KeyChain = () => {
                             </View>
                         </Card.Content>
                         <Card.Actions>
-                            <Button onPress={() => editKey(item.id)}>Editar</Button>
+                            <Button onPress={() => {
+                                setItem(item)
+                                setNewKeyHash(item.hash)
+                                setNewKeyDescription(item.description)
+                                setModalVisible(true)
+                            }}>Editar</Button>
                             <Button onPress={() => {
                                 setItem(item)
                                 showDialog()
@@ -346,7 +356,17 @@ const KeyChain = () => {
 
                         <View style={[globalStyles.center, { flexDirection: 'row' }]}>
                             <Button onPress={() => setModalVisible(false)} mode="outlined" style={{ margin: 8, width: '45%' }} >Cancelar</Button>
-                            <Button onPress={addKey} mode="contained" style={{ margin: 8, width: '45%' }}>Criar Senha</Button>
+                            {
+                                item
+                                    ? <Button onPress={() => {
+                                        editKey({
+                                            ...item,
+                                            hash: newKeyHash,
+                                            description: newKeyDescription,
+                                        })
+                                      }} mode="contained" style={{ margin: 8, width: '45%' }}>Salvar</Button>
+                                    : <Button onPress={addKey} mode="contained" style={{ margin: 8, width: '45%' }}>Criar Senha</Button>
+                            }
                         </View>
 
                     </View>
