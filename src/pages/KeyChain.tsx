@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, FlatList, Alert } from 'react-native';
 import {Modal, Portal, TextInput, Button, Checkbox, Title, Card, Appbar, Searchbar, Menu, IconButton, useTheme} from 'react-native-paper';
 import uuid from 'react-native-uuid';
-import Clipboard from '@react-native-clipboard/clipboard';
+import * as Clipboard from 'expo-clipboard';
 import {globalStyles} from "../lib/styles";
 import { useFirebase } from '../hooks/useFirebase';
 import { Key } from '../lib/@types/KeyChain';
@@ -103,8 +103,8 @@ const KeyChain = () => {
     };
 
     // Função para copiar o hash
-    const copyToClipboard = (hash: string) => {
-        Clipboard.setString(hash);
+    const copyToClipboard = async (hash: string) => {
+        await Clipboard.setStringAsync(hash);
         Alert.alert('Copiado', 'O hash foi copiado para a área de transferência');
     };
 
