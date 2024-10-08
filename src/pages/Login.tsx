@@ -1,7 +1,6 @@
 import React, {useState} from "react";
-import {KeyboardAvoidingView, Text, View, StyleSheet} from "react-native";
+import {KeyboardAvoidingView, Text, View, StyleSheet, Platform} from "react-native";
 import {Avatar, Button, useTheme} from "react-native-paper";
-import UserInfo from "../components/UserInfo";
 import {signInWithPopup} from "firebase/auth";
 import {authProviderGoogle} from "../../firebaseConfig";
 import firebase from "firebase/compat";
@@ -29,7 +28,7 @@ const Login = () => {
                     <Text style={globalStyles.subHeaderText}>A maneira mais segura de gerenciar suas senhas</Text>
                 </View>
 
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={Platform.OS === 'web' ? {flex: 1, justifyContent: 'center', alignItems: 'center'} : {}}>
                     <Button
                         style={styles.button}
                         mode={"contained"}

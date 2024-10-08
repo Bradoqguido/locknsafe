@@ -9,11 +9,10 @@ import env from './env.json'
 
 // Initialize Firebase
 export const firebaseApp = initializeApp(env.firebaseConfig);
-const analytics = getAnalytics(firebaseApp);
+export const analytics = getAnalytics(firebaseApp);
 
 const persistence = Platform.OS === 'web' ? inMemoryPersistence : getReactNativePersistence(AsyncStorage);
-export const auth = getAuth(firebaseApp);
-auth.setPersistence(persistence);
+export const auth = Platform.OS === 'web' ? getAuth(firebaseApp, { persistence }) :  initializeAuth(firebaseApp, { persistence });
 auth.useDeviceLanguage();
 
 export const db = getFirestore(firebaseApp);
