@@ -18,6 +18,5 @@ export const globalStyles = StyleSheet.create({
     },
     subHeaderText: {
         fontSize: 18,
-        color: '#333',
     },
 });
